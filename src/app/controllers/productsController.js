@@ -28,6 +28,18 @@ async function updateProduct(name, id) {
 	return updatedProduct;
 }
 
+function compareDate(date) {
+	let dt = new Date();
+	let days = days_between(dt, date);
+	console.log("days ->", days);
+
+	if (days >= 5) {
+		return true;
+	}
+
+	return false;
+}
+
 router.get("/", async (req, res) => {
 	try {
 		const { name } = req.query;
@@ -40,15 +52,10 @@ router.get("/", async (req, res) => {
 
 		if (docs.length > 0) {
 			let { updateAt, _id } = docs[0];
-			let dt = new Date();
-			let days = days_between(dt, updateAt);
-			console.log("days ->", days);
-
-			if (days >= 0) {
+			if (compareDate(updateAt)) {
 				let updatedProduct = await updateProduct(name, _id);
 				return res.status(200).send({ updatedProduct });
 			}
-
 			return res.status(200).send({ docs });
 		}
 
