@@ -60,15 +60,20 @@ const puppeteerGetHtmlRedirectAmericanas = async (url) => {
 		args: ["--no-sandbox", "--disable-setuid-sandbox"],
 	});
 	const page = await browser.newPage();
-
+	await page.setUserAgent(
+		"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
+	);
 	await page.goto(url);
 	await page.waitForNavigation();
-
-	await page.waitFor(500);
+	await page.waitFor(1000);
 
 	page.evaluate((_) => {
 		//scrolla pra carregar o IFRAME, caso tenha
-		document.getElementById("info-section").scrollIntoView();
+		try {
+			document.getElementById("info-section").scrollIntoView();
+		} catch (error) {
+			console.log("[AMERICANAS] Erro scroll");
+		}
 	});
 
 	await page.waitFor(1000);
@@ -76,6 +81,7 @@ const puppeteerGetHtmlRedirectAmericanas = async (url) => {
 	let result = await page.$eval("html", (element) => {
 		return element.innerHTML;
 	});
+	console.log("result", result);
 	await browser.close();
 	return result;
 };
@@ -158,6 +164,7 @@ const getDescAmericanas = async function (url) {
 
 const getDescription = async (allPrices) => {
 	let description = {};
+	console.log(allPrices);
 
 	// selecionando as lojas e facilitando a busca de descricao
 	allPrices.map((store) => {
@@ -175,20 +182,37 @@ const getDescription = async (allPrices) => {
 	let desc = null;
 
 	if (description["Magazine"]) {
-		desc = await getDescMagazine(description["Magazine"].storeUrl);
+		console.log("MAGAZINE");
+		try {
+			desc = await getDescMagazine(description["Magazine"].storeUrl);
+		} catch (error) {
+			console.log("[MAGAZINE] Erro");
+		}
 	}
 
 	if (!desc && description["Americanas"]) {
-		desc = await getDescAmericanas(description["Americanas"].storeUrl);
+		console.log("Americanas");
+		console.log(description);
+		try {
+			desc = await getDescAmericanas(description["Americanas"].storeUrl);
+		} catch (error) {
+			console.log("[AMERICANAS] Erro");
+		}
 	}
+	console.log("Amazon antes", desc);
 	if (!desc && description["Amazon"]) {
-		desc = await getDescAmazon(description["Amazon"].storeUrl);
+		console.log("Amazon depois");
+		try {
+			desc = await getDescAmazon(description["Amazon"].storeUrl);
+		} catch (error) {
+			console.log("[Amazon] Erro");
+		}
 	}
 
 	return desc;
 };
 
-const getInfos = async (name) => {
+const getInfos = async (name, flagDescription = true) => {
 	let urlProduct = await searchZoom(name);
 
 	if (!urlProduct) {
@@ -209,6 +233,7 @@ const getInfos = async (name) => {
 		let image = $(el).find(".col-img img").attr("src");
 
 		let storeTitle = $(el).find(".col-store a").attr("title").split(" ")[1];
+
 		let storeUrl = $(el)
 			.find(".col-store a")
 			.attr("href")
@@ -250,36 +275,43 @@ const getInfos = async (name) => {
 
 	console.log("[ZOOM] Especificações salvas ");
 
-	const description = await getDescription(allprices);
+	let description;
 
-	if (!description) {
-		throw new Error("Product not found");
+	if (flagDescription) {
+		if (allprices && allprices.length > 0) {
+			description = await getDescription(allprices);
+		}
+
+		if (!description) {
+			throw new Error("Product not found");
+		}
+		// console.log(description);
 	}
-	// console.log(description);
+
 	return { title, description, specs, allprices };
 };
 
-const saveJson = (files, name) => {
-	console.log("[x] Salvando JSON");
-	let atDate = new Date()
-		.toLocaleString()
-		.split(" ")
-		.join("-")
-		.split(":")
-		.join("-")
-		.split("/")
-		.join("-");
+// const saveJson = (files, name) => {
+// 	console.log("[x] Salvando JSON");
+// 	let atDate = new Date()
+// 		.toLocaleString()
+// 		.split(" ")
+// 		.join("-")
+// 		.split(":")
+// 		.join("-")
+// 		.split("/")
+// 		.join("-");
 
-	fs.writeFile(
-		`${name}-${atDate}.json`,
-		JSON.stringify(files, null, 4),
-		function (err) {
-			if (err) {
-				console.log(err);
-			}
-		}
-	);
+// 	fs.writeFile(
+// 		`${name}-${atDate}.json`,
+// 		JSON.stringify(files, null, 4),
+// 		function (err) {
+// 			if (err) {
+// 				console.log(err);
+// 			}
+// 		}
+// 	);
 
-	console.log("[!] bye");
-};
+// 	console.log("[!] bye");
+// };
 module.exports = getInfos;
