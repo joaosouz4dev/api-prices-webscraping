@@ -1,0 +1,27 @@
+{
+	"name": "price-multiple-sites",
+	"version": "1.0.0",
+	"main": "index.js",
+	"license": "MIT",
+	"scripts": {
+		"dev": "nodemon src/index.js",
+		"start": "node src/index.js"
+	},
+	"dependencies": {
+		"axios": "^0.19.2",
+		"body-parser": "^1.19.0",
+		"cheerio": "^1.0.0-rc.3",
+		"cors": "^2.8.5",
+		"express": "^4.17.1",
+		"express-list-endpoints": "^4.0.1",
+		"fs": "^0.0.1-security",
+		"mongoose": "^5.9.18",
+		"mongoose-paginate": "^5.0.3",
+		"morgan": "^1.10.0",
+		"puppeteer": "^3.3.0"
+	},
+	"devDependencies": {
+		"dotenv": "^8.2.0",
+		"nodemon": "^2.0.4"
+	}
+}
