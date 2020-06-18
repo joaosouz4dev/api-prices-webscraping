@@ -16,6 +16,9 @@ app.use(cors());
 
 require("./app/controllers/productsController")(app);
 
+app.get("/", (req, res) => {
+	res.json({ sucess: true });
+});
 const porta = process.env.PORT || 3001;
 console.log(`[D]Porta: ${porta}`);
 app.listen(porta);
