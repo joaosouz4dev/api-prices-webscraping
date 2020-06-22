@@ -4,6 +4,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const cors = require("cors"); // permitir acesso de determinado dominio
+const path = require("path");
 
 const allRoutes = require("express-list-endpoints"); // testes
 
@@ -16,9 +17,8 @@ app.use(cors());
 
 require("./app/controllers/productsController")(app);
 
-app.get("/", (req, res) => {
-	res.json({ sucess: true });
-});
+app.use(express.static(path.join(__dirname, "public")));
+
 const porta = process.env.PORT || 3001;
 console.log(`[D]Porta: ${porta}`);
 app.listen(porta);

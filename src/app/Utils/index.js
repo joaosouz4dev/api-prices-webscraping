@@ -40,6 +40,7 @@ const puppeteerGetHtmlRedirect = async (url) => {
 	// 	timeout: 0,
 	// });
 	await page.waitForNavigation();
+	await page.waitFor(500);
 
 	let result = await page.$eval("html", (element) => {
 		return element.innerHTML;
@@ -282,9 +283,9 @@ const getInfos = async (name, flagDescription = true) => {
 			description = await getDescription(allprices);
 		}
 
-		if (!description) {
-			throw new Error("Product not found");
-		}
+		//if (!description) {
+		//	throw new Error("Product not found");
+		//}
 		// console.log(description);
 	}
 
