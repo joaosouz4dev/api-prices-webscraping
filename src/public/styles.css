@@ -102,7 +102,7 @@ body {
 
 @media (max-width: 768px) {
 	.send-request {
-		height: 270px;
+		height: 470px;
 		width: 350px;
 		background-color: rgb(104, 41, 163);
 
