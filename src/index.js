@@ -15,7 +15,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.use(cors());
 
-require("./app/controllers/productsController")(app);
+require("./app/controllers/zoomController")(app);
+require("./app/controllers/amerianasController")(app);
+require("./app/controllers/magazineController")(app);
+require("./app/controllers/amazonController")(app);
 
 app.use(express.static(path.join(__dirname, "public")));
 

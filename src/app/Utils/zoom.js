@@ -1,9 +1,6 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
-const fs = require("fs");
 const puppeteer = require("puppeteer");
-const { Error } = require("mongoose");
-const { throws } = require("assert");
 
 const searchZoom = async (name) => {
 	let zoomUrl = "https://www.zoom.com.br";
@@ -40,7 +37,7 @@ const puppeteerGetHtmlRedirect = async (url) => {
 	// 	timeout: 0,
 	// });
 	await page.waitForNavigation();
-	await page.waitFor(500);
+	await page.waitFor(1000);
 
 	let result = await page.$eval("html", (element) => {
 		return element.innerHTML;

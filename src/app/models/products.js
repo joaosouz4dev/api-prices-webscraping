@@ -6,6 +6,10 @@ const ProductsSchema = new mongoose.Schema({
 		type: String,
 		require: true,
 	},
+	link: {
+		type: String,
+		require: true,
+	},
 	specs: {
 		type: String,
 		require: true,
@@ -18,8 +22,16 @@ const ProductsSchema = new mongoose.Schema({
 			iframe: {
 				type: String,
 			},
+			html: {
+				type: String,
+			},
 		},
 	],
+	price: {
+		type: String,
+		require: true,
+	},
+	imgs: [{ url: { type: String } }],
 	allprices: [
 		{
 			image: { type: String, require: true },
