@@ -72,7 +72,7 @@ router.get("/", async (req, res) => {
 			return res.status(200).send({ docs });
 		}
 
-		const { ...data } = await getInfosZoom(name);
+		const { ...data } = await getInfosZoom(name, true);
 
 		let { title } = data;
 
