@@ -5,18 +5,17 @@ const puppeteer = require("puppeteer");
 const searchZoom = async (name) => {
 	let zoomUrl = "https://www.zoom.com.br";
 	const { data } = await axios.get(`${zoomUrl}/search?q=${name}`);
-
 	const $ = cheerio.load(data);
 
-	let href = $(
-		"#pageSearchResultsBody > div.searchList___2csrw > div:nth-child(1)"
-	)
+	let href = $("#pageSearchResultsBody > div:nth-child(2) > div:nth-child(1)")
 		.find("a")
 		.attr("href");
 
 	console.log("[ZOOM] Busca feita ");
 
-	if (href) {
+	//lead eh a url de redirect, o produto so tem em uma loja
+	if (href && !href.includes("lead")) {
+		console.log(href);
 		href = zoomUrl + href;
 		return href;
 	}

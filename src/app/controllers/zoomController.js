@@ -76,6 +76,8 @@ router.get("/", async (req, res) => {
 
 		let { title } = data;
 
+		console.log("ZOOM achou ->", title);
+
 		flag = undefined;
 
 		//caso o usuario insira um nome errado: iphhone X, mas o site responde iphone X, ai ele verifica no banco de novo
