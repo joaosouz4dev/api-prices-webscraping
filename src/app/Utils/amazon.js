@@ -34,6 +34,10 @@ const search = async (name) => {
 			.join("");
 	}
 
+	if (!href) {
+		throw new Error("Product not found");
+	}
+
 	return baseUrl + ahref;
 };
 

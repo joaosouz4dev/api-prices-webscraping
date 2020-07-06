@@ -9,15 +9,18 @@ const search = async (name) => {
 	);
 	const $ = cheerio.load(data);
 
-	let ahref = $(
-		"#content-middle > div:nth-child(6) > div > div > div > div.row.product-grid.no-gutters.main-grid > div:nth-child(1)"
-	)
-		.find("a")
-		.attr("href")
-		.split(" ")
-		.join("");
-
-	return baseUrl + ahref;
+	try {
+		let ahref = $(
+			"#content-middle > div:nth-child(6) > div > div > div > div.row.product-grid.no-gutters.main-grid > div:nth-child(1)"
+		)
+			.find("a")
+			.attr("href")
+			.split(" ")
+			.join("");
+		return baseUrl + ahref;
+	} catch (error) {
+		throw new Error("Product not found");
+	}
 };
 
 const getInfos = async (link) => {

@@ -7,13 +7,17 @@ const search = async (name) => {
 	);
 	const $ = cheerio.load(data);
 
-	let ahref = $(".productShowCase.big li:nth-child(1)")
-		.find("a")
-		.attr("href")
-		.split(" ")
-		.join("");
+	try {
+		let ahref = $(".productShowCase.big li:nth-child(1)")
+			.find("a")
+			.attr("href")
+			.split(" ")
+			.join("");
 
-	return ahref;
+		return ahref;
+	} catch (error) {
+		throw new Error("Product not found");
+	}
 };
 
 const getInfos = async (link) => {
