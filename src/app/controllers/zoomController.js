@@ -1,6 +1,7 @@
 /* eslint-disable radix */
 const express = require("express");
 const Products = require("../models/products");
+const Stores = require("../models/stores");
 const getInfosZoom = require("../Utils/zoom");
 
 const router = express.Router();
@@ -101,6 +102,29 @@ router.get("/", async (req, res) => {
 				"Tente especificar mais detalhes: Galaxy S7 Edge, ao inves de Galaxy S7",
 		});
 	}
+});
+
+router.get("/uncheckedStores", async (req, res) => {
+	// agrupa por nome e conta
+	const rt = await Stores.aggregate(
+		[
+			{
+				$group: {
+					_id: "$name",
+					count: {
+						$sum: 1,
+					},
+				},
+			},
+			{ $sort: { name: -1 } },
+		],
+		function (err, results) {
+			if (err) throw err;
+			return results;
+		}
+	);
+
+	res.json(rt);
 });
 
 module.exports = (app) => app.use("/zoom", router);

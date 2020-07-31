@@ -4,6 +4,7 @@ const cheerio = require("cheerio");
 const baseUrl = "https://www.americanas.com.br";
 
 const search = async (name) => {
+	console.log(name);
 	const { data } = await axios.get(
 		`https://www.americanas.com.br/busca/${name}`
 	);

@@ -2,6 +2,52 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const puppeteer = require("puppeteer");
 
+const getInfosAmazon = require("../Utils/amazon");
+const getInfosAmericanas = require("../Utils/americanas");
+const getInfosMagazine = require("../Utils/magazine");
+
+const StoresModel = require("../models/stores");
+
+const saveBd = async (stores) => {
+	console.log("Salvando lojas que não possuem algoritmo de scrap");
+
+	stores.map(async (el) => {
+		if (el.length > 0) {
+			await StoresModel.create({
+				name: el,
+			});
+		}
+	});
+};
+
+const saveNameStores = async (data) => {
+	const $ = cheerio.load(data);
+
+	const stores = [];
+
+	$(".card").each(function (i, el) {
+		let name = $(el)
+			.find(".merchantName")
+			.text()
+			.trim()
+			.split(" ")
+			.join("");
+
+		// lojas que o algoritmo ja consegue fazer redirect
+		if (
+			!name.includes("Amazon") &&
+			!name.includes("Americanas") &&
+			!name.includes("Magazine")
+		) {
+			//lojas que nao podemos fazer o scrap
+			//eh add no banco
+			stores.push(name);
+		}
+	});
+
+	await saveBd(stores);
+};
+
 const searchZoom = async (name) => {
 	let zoomUrl = "https://www.zoom.com.br";
 	const { data } = await axios.get(`${zoomUrl}/search?q=${name}`);
@@ -17,11 +63,20 @@ const searchZoom = async (name) => {
 	if (href && !href.includes("lead")) {
 		console.log(href);
 		href = zoomUrl + href;
-		return href;
+		return { falg: true, href };
 	}
 
+	await saveNameStores(data);
 	console.log("[ZOOM] Nada encontrado");
-	return null;
+	return {
+		flag: false,
+		href: null,
+		storeName: $(
+			"#pageSearchResultsBody > div:nth-child(2) > div:nth-child(1) .merchantName"
+		)
+			.text()
+			.trim(),
+	};
 };
 
 const puppeteerGetHtmlRedirect = async (url) => {
@@ -31,10 +86,7 @@ const puppeteerGetHtmlRedirect = async (url) => {
 	});
 	const page = await browser.newPage();
 	await page.goto(url);
-	// await page.waitForSelector("#anchor-description", {
-	// 	visible: true,
-	// 	timeout: 0,
-	// });
+
 	await page.waitForNavigation();
 	await page.waitFor(1000);
 
@@ -196,9 +248,8 @@ const getDescription = async (allPrices) => {
 			console.log("[AMERICANAS] Erro");
 		}
 	}
-	console.log("Amazon antes", desc);
 	if (!desc && description["Amazon"]) {
-		console.log("Amazon depois");
+		console.log("Amazon");
 		try {
 			desc = await getDescAmazon(description["Amazon"].storeUrl);
 		} catch (error) {
@@ -212,11 +263,27 @@ const getDescription = async (allPrices) => {
 const getInfos = async (name, flagDescription = true) => {
 	let urlProduct = await searchZoom(name);
 
-	if (!urlProduct) {
+	if (!urlProduct.flag) {
+		//add loja: coloca mais uma verificao e a funcao da nova loja
+		if (urlProduct.storeName.includes("Americanas")) {
+			console.log("[REDIRECT] Amerincanas");
+			let { ...data } = await getInfosAmericanas(name);
+			return data;
+		}
+		if (urlProduct.storeName.includes("Amazon")) {
+			console.log("[REDIRECT] Amazon");
+			let { ...data } = await getInfosAmazon(name);
+			return data;
+		}
+		if (urlProduct.storeName.includes("Magazine")) {
+			console.log("[REDIRECT] Magazine");
+			let { ...data } = await getInfosMagazine(name);
+			return data;
+		}
 		return null;
 	}
 
-	const { data } = await axios.get(urlProduct);
+	const { data } = await axios.get(urlProduct.href);
 
 	const $ = cheerio.load(data);
 
@@ -246,30 +313,6 @@ const getInfos = async (name, flagDescription = true) => {
 
 	let specs = $.html(".tech-spec-table");
 
-	//salve quebrado
-	// console.log(specs);
-	// $(".tech-spec-table tbody").each((i, el) => {
-	// 	let nameTable = $(el).find(".tt th").text();
-	// 	nameTable = nameTable.replace(/\r?\n|\r/g, "");
-	// 	nameTable = nameTable.replace(/ +(?= )/g, "");
-
-	// 	// let infos = [];
-
-	// 	// $(el)
-	// 	// 	.find(".ti")
-	// 	// 	.each((index, element) => {
-	// 	// 		let name = $(element).find(".table-attr").text().trim();
-	// 	// 		name = name.replace(/\r?\n|\r/g, "");
-	// 	// 		name = name.replace(/ +(?= )/g, "");
-
-	// 	// 		let value = $(element).find(".table-val").text();
-
-	// 	// 		infos.push({ name, value });
-	// 	// 	});
-
-	// 	specs.push({ nameTable, infos });
-	// });
-
 	console.log("[ZOOM] Especificações salvas ");
 
 	let description;
@@ -278,37 +321,9 @@ const getInfos = async (name, flagDescription = true) => {
 		if (allprices && allprices.length > 0) {
 			description = await getDescription(allprices);
 		}
-
-		//if (!description) {
-		//	throw new Error("Product not found");
-		//}
-		// console.log(description);
 	}
 
 	return { title, description, specs, allprices };
 };
 
-// const saveJson = (files, name) => {
-// 	console.log("[x] Salvando JSON");
-// 	let atDate = new Date()
-// 		.toLocaleString()
-// 		.split(" ")
-// 		.join("-")
-// 		.split(":")
-// 		.join("-")
-// 		.split("/")
-// 		.join("-");
-
-// 	fs.writeFile(
-// 		`${name}-${atDate}.json`,
-// 		JSON.stringify(files, null, 4),
-// 		function (err) {
-// 			if (err) {
-// 				console.log(err);
-// 			}
-// 		}
-// 	);
-
-// 	console.log("[!] bye");
-// };
 module.exports = getInfos;

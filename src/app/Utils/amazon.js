@@ -17,13 +17,20 @@ const search = async (name) => {
 		.text();
 
 	if (price) {
-		ahref = $(
-			"#search > div.s-desktop-width-max.s-desktop-content.sg-row > div.sg-col-20-of-24.sg-col-28-of-32.sg-col-16-of-20.sg-col.sg-col-32-of-36.sg-col-8-of-12.sg-col-12-of-16.sg-col-24-of-28 > div > span:nth-child(4) > div.s-main-slot.s-result-list.s-search-results.sg-row > div:nth-child(1)"
-		)
-			.find("a")
-			.attr("href")
-			.split(" ")
-			.join("");
+		if (price.includes("Mais vendido")) {
+			ahref = $("#search  .a-link-normal.a-text-normal")
+				.attr("href")
+				.split(" ")
+				.join("");
+		} else {
+			ahref = $(
+				"#search > div.s-desktop-width-max.s-desktop-content.sg-row > div.sg-col-20-of-24.sg-col-28-of-32.sg-col-16-of-20.sg-col.sg-col-32-of-36.sg-col-8-of-12.sg-col-12-of-16.sg-col-24-of-28 > div > span:nth-child(4) > div.s-main-slot.s-result-list.s-search-results.sg-row > div:nth-child(1)"
+			)
+				.find("a")
+				.attr("href")
+				.split(" ")
+				.join("");
+		}
 	} else {
 		ahref = $(
 			"#search > div.s-desktop-width-max.s-desktop-content.sg-row > div.sg-col-20-of-24.sg-col-28-of-32.sg-col-16-of-20.sg-col.sg-col-32-of-36.sg-col-8-of-12.sg-col-12-of-16.sg-col-24-of-28 > div > span:nth-child(4) > div.s-main-slot.s-result-list.s-search-results.sg-row > div:nth-child(2)"
@@ -34,7 +41,7 @@ const search = async (name) => {
 			.join("");
 	}
 
-	if (!href) {
+	if (!ahref) {
 		throw new Error("Product not found");
 	}
 
