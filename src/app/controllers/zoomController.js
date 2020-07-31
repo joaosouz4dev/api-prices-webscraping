@@ -116,7 +116,7 @@ router.get("/uncheckedStores", async (req, res) => {
 					},
 				},
 			},
-			{ $sort: { name: -1 } },
+			{ $sort: { count: -1 } },
 		],
 		function (err, results) {
 			if (err) throw err;
