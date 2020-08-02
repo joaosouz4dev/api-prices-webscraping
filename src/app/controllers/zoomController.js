@@ -105,26 +105,30 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/uncheckedStores", async (req, res) => {
-	// agrupa por nome e conta
-	const rt = await Stores.aggregate(
-		[
-			{
-				$group: {
-					_id: "$name",
-					count: {
-						$sum: 1,
+	try {
+		// agrupa por nome e conta
+		const rt = await Stores.aggregate(
+			[
+				{
+					$group: {
+						_id: "$name",
+						count: {
+							$sum: 1,
+						},
 					},
 				},
-			},
-			{ $sort: { count: -1 } },
-		],
-		function (err, results) {
-			if (err) throw err;
-			return results;
-		}
-	);
+				{ $sort: { count: -1 } },
+			],
+			function (err, results) {
+				if (err) throw err;
+				return results;
+			}
+		);
 
-	res.json(rt);
+		res.json(rt);
+	} catch (error) {
+		res.json({ erro: "falha na hora de agrupar as lojas :{" });
+	}
 });
 
 module.exports = (app) => app.use("/zoom", router);

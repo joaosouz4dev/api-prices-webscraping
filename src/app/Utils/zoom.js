@@ -63,7 +63,7 @@ const searchZoom = async (name) => {
 	if (href && !href.includes("lead")) {
 		console.log(href);
 		href = zoomUrl + href;
-		return { falg: true, href };
+		return { flag: true, href };
 	}
 
 	await saveNameStores(data);
