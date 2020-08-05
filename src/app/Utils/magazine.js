@@ -138,7 +138,7 @@ const getDescription = (data) => {
 		}
 
 		console.log("[MAGAZINE] Encontrado descricao em texto");
-		return { text: desc };
+		return { text: desc.trim() };
 	}
 
 	console.log("[MAGAZINE] Erro ao carregar o HTML");

@@ -155,7 +155,7 @@ const getDescription = (data) => {
 		}
 
 		console.log("[AMAZON] Encontrado descricao em texto");
-		return { html: desc };
+		return { html: desc.trim() };
 	}
 
 	console.log("[AMAZON] falha no carregamento do html");

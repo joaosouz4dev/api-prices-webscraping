@@ -32,14 +32,6 @@ const ProductsSchema = new mongoose.Schema({
 		require: true,
 	},
 	imgs: [{ url: { type: String } }],
-	allprices: [
-		{
-			image: { type: String, require: true },
-			storeTitle: { type: String, require: true },
-			storeUrl: { type: String, require: true },
-			price: { type: String, require: true },
-		},
-	],
 	updateAt: {
 		type: Date,
 	},

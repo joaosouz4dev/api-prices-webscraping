@@ -15,9 +15,8 @@ mongoose.Promise = global.Promise;
 mongoose.set("useCreateIndex", true);
 
 mongoose.connection.on("connected", () => {
-	console.log(
-		`[D] Conectado ao banco de dados, url:${mongoose.connection.client.s.url}`
-	);
+	console.log(`[D] Conectado ao banco de dados`);
+	//url:${mongoose.connection.client.s.url}
 });
 mongoose.connection.on("error", (err) => {
 	console.log(`[D] Erro na conexao: ${err}`);

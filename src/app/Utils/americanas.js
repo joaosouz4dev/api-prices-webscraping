@@ -1,10 +1,11 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 
+const puppeteer = require("puppeteer");
+
 const baseUrl = "https://www.americanas.com.br";
 
 const search = async (name) => {
-	console.log(name);
 	const { data } = await axios.get(
 		`https://www.americanas.com.br/busca/${name}`
 	);
@@ -24,8 +25,29 @@ const search = async (name) => {
 	}
 };
 
+const puppeteerGetHtmlRedirectAmericanas = async (url) => {
+	const browser = await puppeteer.launch({
+		headless: true,
+		args: ["--no-sandbox", "--disable-setuid-sandbox"],
+	});
+	const page = await browser.newPage();
+	await page.setUserAgent(
+		"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36"
+	);
+	await page.goto(url, { waitUntil: "networkidle0" });
+
+	const result = await page.evaluate(() => {
+		let body = document.querySelector("html").innerHTML;
+		return body;
+	});
+
+	await browser.close();
+	return result;
+};
+
 const getInfos = async (link) => {
-	const { data } = await axios.get(link);
+	// const { data } = await axios.get(link);
+	const data = await puppeteerGetHtmlRedirectAmericanas(link);
 
 	let name = getName(data);
 	let price = getPrice(data);
@@ -41,7 +63,7 @@ const getName = (data) => {
 	if (data) {
 		const $ = cheerio.load(data);
 
-		let name = $("#product-name-default").text();
+		let name = $("h1#product-name-default").text();
 		if (name) {
 			console.log("[AMERICANAS] Achou o título");
 			return name;
@@ -71,6 +93,15 @@ const getPrice = (data) => {
 
 		price = $(
 			"#content > div > div > div.GridUI-wcbvwm-0.idBPEj.ViewUI-sc-1ijittn-6.iXIDWU > div > section > div > div.GridUI-wcbvwm-0.gpGkIJ.ViewUI-sc-1ijittn-6.iXIDWU > div.ColUI-gjy0oc-0.eukbCO.ViewUI-sc-1ijittn-6.iXIDWU > div:nth-child(3) > div > div > div:nth-child(2) > div > div > div > label > div > div.pricebox > span"
+		).text();
+
+		if (price) {
+			console.log("[AMERICANAS] Achou o preço");
+			return price;
+		}
+
+		price = $(
+			"#content > div > div > div.GridUI-wcbvwm-0.idBPEj.ViewUI-sc-1ijittn-6.iXIDWU > div > section > div > div.product-main-area-b__ProductMainAreaUI-sc-18529u5-1.kSmtUA.ViewUI-sc-1ijittn-6.iXIDWU > div.offer-box__Wrapper-sc-1hat60-0.dKwBwA.ViewUI-sc-1ijittn-6.iXIDWU > div > div.buybox__BigSection-sc-4z0zqv-1.itEiUd.ViewUI-sc-1ijittn-6.iXIDWU > div:nth-child(1) > div > div.main-offer__ContainerUI-sc-1c7pzd1-0.fjQzCD.ViewUI-sc-1ijittn-6.iXIDWU > div:nth-child(1) > div > span"
 		).text();
 
 		if (price) {
@@ -159,7 +190,7 @@ const getDescription = (data) => {
 		}
 
 		console.log("[AMERICANAS] Encontrado descricao em texto");
-		return { text: desc };
+		return { text: desc.trim() };
 	}
 
 	console.log("[AMERICANAS] Erro ao carregar o HTML");

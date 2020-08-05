@@ -19,13 +19,14 @@ function days_between(date1, date2) {
 async function updateProduct(name, id) {
 	console.log("[!] Update product ->", name);
 	const { ...data } = await getInfosAmericanas(name);
-	let updateAt = new Date();
-	let updatedProduct = await Products.findByIdAndUpdate(id, {
-		...data,
-		updateAt,
-	});
-
-	return updatedProduct;
+	if (data) {
+		let updateAt = new Date();
+		let updatedProduct = await Products.findByIdAndUpdate(id, {
+			...data,
+			updateAt,
+		});
+		return updatedProduct;
+	}
 }
 
 function compareDate(date) {
