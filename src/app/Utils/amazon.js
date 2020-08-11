@@ -1,6 +1,8 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 
+const createCustomError = require("./errorException");
+
 const baseUrl = "https://www.amazon.com.br";
 
 const search = async (name) => {
@@ -9,41 +11,47 @@ const search = async (name) => {
 
 	let ahref;
 
-	//amazon coloca uma div de promocoes, essa parte de baixo pula isso
-	let price = $(
-		"#search > div.s-desktop-width-max.s-desktop-content.sg-row > div.sg-col-20-of-24.sg-col-28-of-32.sg-col-16-of-20.sg-col.sg-col-32-of-36.sg-col-8-of-12.sg-col-12-of-16.sg-col-24-of-28 > div > span:nth-child(4) > div.s-main-slot.s-result-list.s-search-results.sg-row > div:nth-child(1)"
-	)
-		.find(".a-row")
-		.text();
+	try {
+		//amazon coloca uma div de promocoes, essa parte de baixo pula isso
+		let price = $(
+			"#search > div.s-desktop-width-max.s-desktop-content.sg-row > div.sg-col-20-of-24.sg-col-28-of-32.sg-col-16-of-20.sg-col.sg-col-32-of-36.sg-col-8-of-12.sg-col-12-of-16.sg-col-24-of-28 > div > span:nth-child(4) > div.s-main-slot.s-result-list.s-search-results.sg-row > div:nth-child(1)"
+		)
+			.find(".a-row")
+			.text();
 
-	if (price) {
-		if (price.includes("Mais vendido")) {
-			ahref = $("#search  .a-link-normal.a-text-normal")
-				.attr("href")
-				.split(" ")
-				.join("");
+		if (price) {
+			if (price.includes("Mais vendido")) {
+				ahref = $("#search  .a-link-normal.a-text-normal").attr("href");
+			} else {
+				ahref = $(
+					"#search > div.s-desktop-width-max.s-desktop-content.sg-row > div.sg-col-20-of-24.sg-col-28-of-32.sg-col-16-of-20.sg-col.sg-col-32-of-36.sg-col-8-of-12.sg-col-12-of-16.sg-col-24-of-28 > div > span:nth-child(4) > div.s-main-slot.s-result-list.s-search-results.sg-row > div:nth-child(1)"
+				)
+					.find("a")
+					.attr("href");
+			}
 		} else {
 			ahref = $(
-				"#search > div.s-desktop-width-max.s-desktop-content.sg-row > div.sg-col-20-of-24.sg-col-28-of-32.sg-col-16-of-20.sg-col.sg-col-32-of-36.sg-col-8-of-12.sg-col-12-of-16.sg-col-24-of-28 > div > span:nth-child(4) > div.s-main-slot.s-result-list.s-search-results.sg-row > div:nth-child(1)"
+				"#search > div.s-desktop-width-max.s-desktop-content.sg-row > div.sg-col-20-of-24.sg-col-28-of-32.sg-col-16-of-20.sg-col.sg-col-32-of-36.sg-col-8-of-12.sg-col-12-of-16.sg-col-24-of-28 > div > span:nth-child(4) > div.s-main-slot.s-result-list.s-search-results.sg-row > div:nth-child(2)"
 			)
 				.find("a")
-				.attr("href")
-				.split(" ")
-				.join("");
+				.attr("href");
+			if (!ahref) {
+				ahref = $(
+					"#search > div.s-desktop-width-max.s-opposite-dir > div > div.sg-col-20-of-24.s-matching-dir.sg-col-28-of-32.sg-col-16-of-20.sg-col.sg-col-32-of-36.sg-col-8-of-12.sg-col-12-of-16.sg-col-24-of-28 > div > span:nth-child(4) > div.s-main-slot.s-result-list.s-search-results.sg-row > div:nth-child(1) > div > span > div > div > div:nth-child(2) > div.sg-col-4-of-24.sg-col-4-of-12.sg-col-4-of-36.sg-col-4-of-28.sg-col-4-of-16.sg-col.sg-col-4-of-20.sg-col-4-of-32 > div > div > span"
+				)
+					.find("a")
+					.attr("href");
+			}
 		}
-	} else {
-		ahref = $(
-			"#search > div.s-desktop-width-max.s-desktop-content.sg-row > div.sg-col-20-of-24.sg-col-28-of-32.sg-col-16-of-20.sg-col.sg-col-32-of-36.sg-col-8-of-12.sg-col-12-of-16.sg-col-24-of-28 > div > span:nth-child(4) > div.s-main-slot.s-result-list.s-search-results.sg-row > div:nth-child(2)"
-		)
-			.find("a")
-			.attr("href")
-			.split(" ")
-			.join("");
+	} catch (error) {
+		console.log(error);
 	}
 
 	if (!ahref) {
-		throw new Error("Product not found");
+		throw new createCustomError("Erro na busca da Amazon", "Amazon");
 	}
+
+	ahref = ahref.split(" ").join("");
 
 	return baseUrl + ahref;
 };
@@ -104,8 +112,12 @@ const getSpecs = (data) => {
 		let table = $.html("#product-details-grid_feature_div table");
 		if (table) {
 			console.log("[AMAZON] Achou as tabelas de especificações");
-
 			return table;
+		} else {
+			table = $("#prodDetails table");
+			if (table) {
+				return table;
+			}
 		}
 
 		console.log("[AMAZON] Não achou as tabelas de especificações");
@@ -148,6 +160,10 @@ const getDescription = (data) => {
 		const $ = cheerio.load(data);
 
 		let desc = $.html("#productDescription");
+
+		if (!desc) {
+			$("");
+		}
 
 		if (!desc) {
 			console.log("[x] Nao achou a descricao na AMAZON");

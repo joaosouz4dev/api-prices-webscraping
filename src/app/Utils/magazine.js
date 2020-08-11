@@ -1,6 +1,8 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 
+const createCustomError = require("./errorException");
+
 const search = async (name) => {
 	const { data } = await axios.get(
 		`https://www.magazineluiza.com.br/busca/${name}`
@@ -16,7 +18,10 @@ const search = async (name) => {
 
 		return ahref;
 	} catch (error) {
-		throw new Error("Product not found");
+		throw new createCustomError(
+			"Erro na busca da loja Magazine",
+			"Magazine"
+		);
 	}
 };
 

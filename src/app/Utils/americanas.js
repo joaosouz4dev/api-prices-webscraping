@@ -1,7 +1,8 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
-
 const puppeteer = require("puppeteer");
+
+const createCustomError = require("./errorException");
 
 const baseUrl = "https://www.americanas.com.br";
 
@@ -21,7 +22,10 @@ const search = async (name) => {
 			.join("");
 		return baseUrl + ahref;
 	} catch (error) {
-		throw new Error("Product not found");
+		throw new createCustomError(
+			"Erro nas buscas das lojas americanas",
+			"Americanas"
+		);
 	}
 };
 

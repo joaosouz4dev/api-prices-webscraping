@@ -7,6 +7,8 @@ const getInfosMagazine = require("../Utils/magazine");
 
 const StoresModel = require("../models/stores");
 
+const createCustomError = require("./errorException");
+
 const saveBd = async (stores) => {
 	console.log("Salvando lojas que não possuem algoritmo de scrap");
 
@@ -23,6 +25,8 @@ const saveNameStores = async (data) => {
 	const $ = cheerio.load(data);
 
 	const stores = [];
+	let scrapStores = null;
+	let flag = false;
 
 	$(".card").each(function (i, el) {
 		let name = $(el)
@@ -41,10 +45,14 @@ const saveNameStores = async (data) => {
 			//lojas que nao podemos fazer o scrap
 			//eh add no banco
 			stores.push(name);
+		} else if (!flag) {
+			scrapStores = name;
+			flag = true;
 		}
 	});
 
 	await saveBd(stores);
+	return scrapStores;
 };
 
 const searchZoom = async (name) => {
@@ -65,16 +73,12 @@ const searchZoom = async (name) => {
 		return { flag: true, href };
 	}
 
-	await saveNameStores(data);
+	let scrapStores = await saveNameStores(data);
 	console.log("[ZOOM] Nada encontrado");
 	return {
 		flag: false,
 		href: null,
-		storeName: $(
-			"#pageSearchResultsBody > div:nth-child(2) > div:nth-child(1) .merchantName"
-		)
-			.text()
-			.trim(),
+		scrapStores,
 	};
 };
 
@@ -190,44 +194,64 @@ const getInfos = async (name, flagDescription = true) => {
 
 	if (!urlProduct.flag) {
 		//add loja: coloca mais uma verificao e a funcao da nova loja
-		if (urlProduct.storeName.includes("Americanas")) {
-			console.log("[REDIRECT] Amerincanas");
-			let { ...data } = await getInfosAmericanas(name);
-			return data;
-		}
-		if (urlProduct.storeName.includes("Amazon")) {
-			console.log("[REDIRECT] Amazon");
-			let { ...data } = await getInfosAmazon(name);
-			return data;
-		}
-		if (urlProduct.storeName.includes("Magazine")) {
-			console.log("[REDIRECT] Magazine");
-			let { ...data } = await getInfosMagazine(name);
-			return data;
-		}
-		return null;
-	}
-
-	const { data } = await axios.get(urlProduct.href);
-
-	const $ = cheerio.load(data);
-
-	let title = getTitle($);
-	let { allprices, imgs } = getImgsAndStores($);
-	let price = getPrice($);
-
-	let specs = $.html(".tech-spec-table");
-	console.log("[ZOOM] Especificações salvas ");
-
-	let description;
-
-	if (flagDescription) {
-		if (allprices && allprices.length > 0) {
-			description = await getDescription(allprices, name);
+		console.log("Passou 1" + urlProduct.scrapStores);
+		let store = urlProduct.scrapStores;
+		try {
+			if (store.includes("Americanas")) {
+				console.log("[REDIRECT] Americanas");
+				let { ...data } = await getInfosAmericanas(name);
+				return data;
+			}
+			if (store.includes("Amazon")) {
+				console.log("[REDIRECT] Amazon");
+				let { ...data } = await getInfosAmazon(name);
+				return data;
+			}
+			if (store.includes("Magazine")) {
+				console.log("[REDIRECT] Magazine");
+				let { ...data } = await getInfosMagazine(name);
+				return data;
+			}
+		} catch (error) {
+			throw new createCustomError(
+				`Redirect foi feito para a loja ${error.store}, mas deu erro na busca :{`,
+				"Zoom"
+			);
 		}
 	}
 
-	return { title, link: urlProduct.href, price, description, specs, imgs };
+	try {
+		console.log("Passou 2");
+		const { data } = await axios.get(urlProduct.href);
+
+		const $ = cheerio.load(data);
+
+		let title = getTitle($);
+		let { allprices, imgs } = getImgsAndStores($);
+		let price = getPrice($);
+
+		let specs = $.html(".tech-spec-table");
+		console.log("[ZOOM] Especificações salvas ");
+
+		let description;
+
+		if (flagDescription) {
+			if (allprices && allprices.length > 0) {
+				description = await getDescription(allprices, name);
+			}
+		}
+
+		return {
+			title,
+			link: urlProduct.href,
+			price,
+			description,
+			specs,
+			imgs,
+		};
+	} catch (error) {
+		throw new createCustomError(`Erro na busca do Zoom:{`, "Zoom");
+	}
 };
 
 module.exports = getInfos;
