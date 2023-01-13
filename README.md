@@ -5,7 +5,7 @@
 ## Sobre
 
 Essa API faz web scraping dos sites: **ZOOM**,  **Magazine**,  **Americanas** e **Amazon**
-Ela mantém um controle de 5 dias(dá pra atualizar na função **compareDate**) dias em cada produto: Se o produto foi feito web scraping em menos de 5 dias, o retorno da API vai ser o produto que já tem no bando de dados.
+Ela mantém um controle de 5 dias(dá pra atualizar na função **compareDate**) dias em cada produto: Se o produto foi feito web scraping em menos de 5 dias, o retorno da API vai ser o produto que já tem no banco de dados.
 
 ## Executar
 > yarn
